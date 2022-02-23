@@ -9,39 +9,12 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 
+// -------------------------------------
+// TYPES
+// -------------------------------------
 enum FirestoreCollection {
   BlogPosts = "posts",
 }
-
-const googleProvider = new GoogleAuthProvider();
-
-const root = document.getElementById("root") as HTMLElement;
-
-function empty(element: HTMLElement) {
-  while (element.firstElementChild) {
-    element.firstElementChild.remove();
-  }
-}
-
-const loadingElement = document.createElement("div");
-loadingElement.innerText = "loading";
-root.appendChild(loadingElement);
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBBgFFZqgfGd9Gl5tYIQRam2jjj25IaFQg",
-  authDomain: "foldable-cms.firebaseapp.com",
-  projectId: "foldable-cms",
-  storageBucket: "foldable-cms.appspot.com",
-  messagingSenderId: "592875802166",
-  appId: "1:592875802166:web:48a0651c2ff2a104a85297",
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const firestore = getFirestore(app);
-
-type BlogPostsEvents = {};
-
 type ReceiveBlogPostsEvent = {
   type: "ReceiveBlogPosts";
   payload: BlogPosts;
@@ -66,6 +39,38 @@ type State = {
   checkedAuth: boolean;
   posts: BlogPosts;
 };
+
+// -------------------------------------
+// FIREBASE
+// -------------------------------------
+const googleProvider = new GoogleAuthProvider();
+const firebaseConfig = {
+  apiKey: "AIzaSyBBgFFZqgfGd9Gl5tYIQRam2jjj25IaFQg",
+  authDomain: "foldable-cms.firebaseapp.com",
+  projectId: "foldable-cms",
+  storageBucket: "foldable-cms.appspot.com",
+  messagingSenderId: "592875802166",
+  appId: "1:592875802166:web:48a0651c2ff2a104a85297",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+
+// -------------------------------------
+// APP
+// -------------------------------------
+const root = document.getElementById("root") as HTMLElement;
+
+function empty(element: HTMLElement) {
+  while (element.firstElementChild) {
+    element.firstElementChild.remove();
+  }
+}
+
+const loadingElement = document.createElement("div");
+loadingElement.innerText = "loading";
+root.appendChild(loadingElement);
 
 const state: State = {
   checkedAuth: false,
