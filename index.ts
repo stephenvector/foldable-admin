@@ -15,6 +15,26 @@ enum AuthEventName {
   SignedIn = "signedIn",
 }
 
+function el(
+  name: keyof HTMLElementTagNameMap,
+  attributes?: Record<string, string>,
+  children?: string
+) {
+  const element = document.createElement(name);
+
+  if (attributes) {
+    Object.entries(attributes).map(([k, v]) => {
+      element.setAttribute(k, v);
+    });
+  }
+
+  if (children) {
+    element.innerText = children;
+  }
+
+  return element;
+}
+
 function observable<T>(initialValue: T) {
   let value: T = initialValue;
   const subscribers: ((v: T) => void)[] = [];
@@ -152,8 +172,7 @@ function empty(element: HTMLElement) {
   }
 }
 
-const loadingElement = document.createElement("div");
-loadingElement.innerText = "loading";
+const loadingElement = el("div", {}, "loading");
 root.appendChild(loadingElement);
 
 const state: State = {
@@ -162,17 +181,14 @@ const state: State = {
   posts: {},
 };
 
-const signInButton = document.createElement("button");
-signInButton.setAttribute("type", "button");
-signInButton.innerText = "Sign In With Google";
+const signInButton = el("button", { type: "button" }, "Sign In With Google");
 signInButton.addEventListener("click", (e) => {
   e.preventDefault();
   signInWithPopup(auth, googleProvider);
 });
 
-const signOutButton = document.createElement("button");
-signOutButton.setAttribute("type", "button");
-signOutButton.innerText = "Sign Out";
+const signOutButton = el("button", { type: "button" }, "Sign Out");
+
 signOutButton.addEventListener("click", (e) => {
   e.preventDefault();
   auth.signOut();
@@ -183,7 +199,7 @@ auth.onAuthStateChanged((user) => {
   state.checkedAuth = true;
   window.dispatchEvent(new CustomEvent(AppEvents.CheckedAuth));
   if (user) {
-    authEmitter.emit(AuthEventName.SignedIn, user);
+    authEmitter.emit(AuthEventName.SignedIn);
     window.dispatchEvent(new CustomEvent(AppEvents.SignedIn));
   } else {
     window.dispatchEvent(new CustomEvent(AppEvents.SignedOut));
@@ -194,24 +210,17 @@ const appElement = document.createElement("div");
 appElement.innerText = "App";
 
 function label(text: string) {
-  const l = document.createElement("label");
-  l.innerText = text;
-  return l;
+  return el("label", {}, text);
 }
 
 function createPostForm(onSubmit: (values: BlogPost) => void) {
   const postFormElement = document.createElement("form");
 
-  const titleElement = document.createElement("input");
-  titleElement.setAttribute("type", "text");
-  titleElement.setAttribute("name", "title");
+  const titleElement = el("input", { type: "text", name: "title" });
 
-  const contentElement = document.createElement("textarea");
-  contentElement.setAttribute("name", "content");
+  const contentElement = el("textarea", { name: "content" });
 
-  const submitButton = document.createElement("button");
-  submitButton.innerText = "Save";
-  submitButton.setAttribute("type", "submit");
+  const submitButton = el("button", { type: "submit" }, "Save");
 
   postFormElement.appendChild(label("Title"));
   postFormElement.appendChild(titleElement);
