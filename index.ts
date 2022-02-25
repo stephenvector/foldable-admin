@@ -9,6 +9,90 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 
+enum AuthEventName {
+  CheckedAuth = "checkedAuth",
+  SignedOut = "signedOut",
+  SignedIn = "signedIn",
+}
+
+function observable<T>(initialValue: T) {
+  let value: T = initialValue;
+  const subscribers: ((v: T) => void)[] = [];
+
+  function set(newValue: T) {
+    value = newValue;
+
+    subscribers.forEach((c) => c(value));
+  }
+
+  function get() {
+    return value;
+  }
+
+  function subscribe(callback: (newValue: T) => void) {
+    subscribers.push(callback);
+    callback(value);
+  }
+
+  function unsubscribe(callback: (newValue: T) => void) {
+    subscribers.splice(subscribers.indexOf(callback) >>> 0, 1);
+  }
+
+  return {
+    set,
+    get,
+    subscribe,
+    unsubscribe,
+  };
+}
+
+function emitter() {
+  const listeners = new Map<string, (() => void)[]>();
+
+  function on(eventName: string, callback: () => void) {
+    const listener = listeners.get(eventName);
+    if (listener) {
+      listener.push(callback);
+    } else {
+      listeners.set(eventName, [callback]);
+    }
+  }
+
+  function emit(eventName: string) {
+    const callbacks = listeners.get(eventName) ?? [];
+    callbacks.forEach((p) => p());
+  }
+
+  return {
+    on,
+    emit,
+  };
+}
+
+const authEmitter = emitter();
+
+authEmitter.on(AuthEventName.SignedIn, () => {
+  console.log("signed in");
+});
+
+const user = observable<User | null>(null);
+
+function printUser(user: User | null) {
+  console.log("user:");
+  console.log(user);
+}
+
+user.subscribe(printUser);
+user.set(null);
+user.set(null);
+user.unsubscribe(printUser);
+console.log("no more");
+user.set(null);
+user.set(null);
+user.set(null);
+user.set(null);
+user.set(null);
+
 // -------------------------------------
 // TYPES
 // -------------------------------------
@@ -99,6 +183,7 @@ auth.onAuthStateChanged((user) => {
   state.checkedAuth = true;
   window.dispatchEvent(new CustomEvent(AppEvents.CheckedAuth));
   if (user) {
+    authEmitter.emit(AuthEventName.SignedIn, user);
     window.dispatchEvent(new CustomEvent(AppEvents.SignedIn));
   } else {
     window.dispatchEvent(new CustomEvent(AppEvents.SignedOut));
